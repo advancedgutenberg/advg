@@ -1932,6 +1932,12 @@ if(!class_exists('AdvancedGutenbergMain')) {
                     $save_config['enable_columns_visual_guide'] = 0;
                 }
 
+                if (isset($_POST['block_visibility'])) {
+                    $save_config['block_visibility'] = 1;
+                } else {
+                    $save_config['block_visibility'] = 0;
+                }
+
                 $save_config['gallery_lightbox_caption'] = $_POST['gallery_lightbox_caption'];
                 $save_config['google_api_key'] = $_POST['google_api_key'];
                 $save_config['blocks_spacing'] = $_POST['blocks_spacing'];
@@ -4539,6 +4545,68 @@ if(!class_exists('AdvancedGutenbergMain')) {
          */
         public function contentPreRender($block)
         {
+			$saved_settings     = get_option('advgb_settings');
+			$blockVisibility = (
+					isset($saved_settings['block_visibility'])
+					&& ($saved_settings['block_visibility'] == 0)
+				)
+				? 'disable'
+				: 'enable';
+
+			if ( $blockVisibility === 'enable' && isset($block['attrs']['bvEnabled']) && intval($block['attrs']['bvEnabled']) === 1 ) {
+				$dateFrom = $dateTo = $recurrence = null;
+				if ( ! empty( $block['attrs']['bvDateFrom'] ) ) {
+					$dateFrom	= DateTime::createFromFormat( 'Y-m-d\TH:i:s', $block['attrs']['bvDateFrom'] );
+					// reset seconds and microseconds to zero to enable proper comparison
+					$dateFrom->setTime( $dateFrom->format('H'), $dateFrom->format('i'), 0, 0 );
+				}
+				if ( ! empty( $block['attrs']['bvDateTo'] ) ) {
+					$dateTo	= DateTime::createFromFormat( 'Y-m-d\TH:i:s', $block['attrs']['bvDateTo'] );
+					// reset seconds and microseconds to zero to enable proper comparison
+					$dateTo->setTime( $dateTo->format('H'), $dateTo->format('i'), 0, 0 );
+				}
+
+				if ( $dateFrom ) {
+					// bvDateTo can be empty so that the block never stops showing.
+					if ( ! empty( $block['attrs']['bvDateTo'] ) ) {
+						$dateTo	= DateTime::createFromFormat( 'Y-m-d\TH:i:s', $block['attrs']['bvDateTo'] );
+						// reset seconds and microseconds to zero to enable proper comparison
+						$dateTo->setTime( $dateTo->format('H'), $dateTo->format('i'), 0, 0 );
+
+						// recurrence is only relevant when both dateFrom and dateTo are defined
+						$recurrence = isset( $block['attrs']['bvRecur'] ) ? $block['attrs']['bvRecur'] : 'once';
+					}
+
+					// fetch current time keeping in mind the timezone
+					$now = DateTime::createFromFormat( 'U', date_i18n( 'U', true ) );
+
+					// reset seconds and microseconds to zero to enable proper comparison
+					// as the from and to dates have those as 0
+					// but do this only for the from comparison
+					// as we need the block to stop showing at the right time and not 1 minute extra
+					$nowFrom = clone $now;
+					$nowFrom->setTime( $now->format('H'), $now->format('i'), 0, 0 );
+
+					switch ( $recurrence ) {
+						case 'monthly':
+							// make the year and month same as today's
+							$dateFrom->setDate( $nowFrom->format('Y'), $nowFrom->format('m'), $dateFrom->format('j') );
+							$dateTo->setDate( $nowFrom->format('Y'), $nowFrom->format('m'), $dateTo->format('j') );
+							break;
+						case 'yearly':
+							// make the year same as today's
+							$dateFrom->setDate( $nowFrom->format('Y'), $dateFrom->format('m'), $dateFrom->format('j') );
+							$dateTo->setDate( $nowFrom->format('Y'), $dateTo->format('m'), $dateTo->format('j') );
+							break;
+					}
+
+					// compare the dates
+					if ( ! ( $dateFrom->getTimestamp() <= $nowFrom->getTimestamp() && ( ! $dateTo || $now->getTimestamp() < $dateTo->getTimestamp() ) ) ) {
+						return null;
+					}
+				}
+			}
+
             // Search for needed blocks then add styles to it
             $style = $this->addBlocksStyles($block);
             array_push($block['innerContent'], $style);
