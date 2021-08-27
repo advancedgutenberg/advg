@@ -1,5 +1,8 @@
 (function ($) {
-    $(window).on('load resize', function() {
+
+    $(window).on('load resize', advgbTopNotice() );
+    
+    function advgbTopNotice() {
         if(window.outerWidth > 600) {
             $wpBarHeight  = $('#wpadminbar').outerHeight();
             $headerHeight = $('.pp-version-notice-bold-purple').outerHeight();
@@ -8,5 +11,6 @@
                 'marginTop', ($wpBarHeight + $headerHeight - 32) + 'px'
             );
         }
-    });
+    }
+    
 }(jQuery));
