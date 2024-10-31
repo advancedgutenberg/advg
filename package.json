@@ -18,7 +18,7 @@
     "braces": "^3.0.3",
     "classnames": "^2.3.1",
     "counterup2": "^1.0.4",
-    "elliptic": "^6.5.4",
+    "elliptic": "^6.6.0",
     "glob-parent": "^5.1.2",
     "hasown": "^2.0.2",
     "hour-convert": "^1.0.1",
