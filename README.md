@@ -6,6 +6,14 @@ PublishPress Blocks is the plugin that gives you more control over the WordPress
 
 PublishPress Blocks has everything you need to build professional websites with WordPress. The blocks include 24 layout options, sliders, buttons, icons, image galleries, maps, tabs, testimonials, accordions, and much more.
 
+## Documentation
+
+https://publishpress.com/knowledge-base/installation/
+
+## How to report bugs or send suggestions
+
+Feel free to email us via [help@publishpress.com](mailto:help@publishpress.com). We would love to hear you, and will work hard to help you.
+
 ### Guidelines
 
 * Write a clear summary
